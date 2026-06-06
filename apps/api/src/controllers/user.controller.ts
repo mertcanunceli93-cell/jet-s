@@ -58,7 +58,7 @@ export const addAddress = async (req: Request, res: Response) => {
       data: {
         userId,
         title,
-        fullAddress,
+        address: fullAddress,
         lat,
         lng,
       },

@@ -44,7 +44,7 @@ app.use(sanitizeInputs);
 import authRoutes from './routes/auth.routes';
 import orderRoutes from './routes/order.routes';
 import priceRoutes from './routes/price.routes';
-import pricingAdminRoutes from './routes/pricing-admin.routes';
+import pricingRoutes from './routes/pricing.routes';
 import userRoutes from './routes/user.routes';
 import courierRoutes from './routes/courier.routes';
 import analyticsRoutes from './routes/analytics.routes';
@@ -54,12 +54,13 @@ import auditLogRoutes from './routes/audit-log.routes';
 app.use('/api/auth', authRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/price', priceRoutes);
-app.use('/api/pricing/admin', pricingAdminRoutes);
+app.use('/api/pricing', pricingRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/couriers', courierRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/audit-logs', auditLogRoutes);
+
 
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
