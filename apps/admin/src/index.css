@@ -1,0 +1,116 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-navy: #0B1220;
+  --color-brand-orange: #FF7A00;
+}
+
+@layer base {
+  body {
+    @apply bg-[#0B1220] text-white font-sans antialiased;
+  }
+}
+
+/* ── Custom Scrollbar ───────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 122, 0, 0.25);
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 122, 0, 0.5);
+}
+
+/* ── Keyframes ──────────────────────────────────── */
+@keyframes slow-zoom {
+  from { transform: scale(1); }
+  to   { transform: scale(1.1); }
+}
+
+@keyframes gradient-x {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-6px); }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 15px rgba(255,122,0,0.2); }
+  50%       { box-shadow: 0 0 30px rgba(255,122,0,0.5); }
+}
+
+@keyframes slide-in-left {
+  from { transform: translateX(-100%); opacity: 0; }
+  to   { transform: translateX(0);     opacity: 1; }
+}
+
+@keyframes fade-up {
+  from { transform: translateY(16px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+/* ── Utility Classes ─────────────────────────────── */
+.animate-slow-zoom {
+  animation: slow-zoom 20s ease-in-out infinite alternate;
+}
+
+.animate-gradient-x {
+  background-size: 200% 200%;
+  animation: gradient-x 5s ease infinite;
+}
+
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.06) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-glow-pulse {
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+.animate-slide-in-left {
+  animation: slide-in-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.animate-fade-up {
+  animation: fade-up 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Glass Card ──────────────────────────────────── */
+.glass-card {
+  background: rgba(17, 24, 39, 0.8);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 1.5rem;
+}
+
+/* ── Sidebar transition ──────────────────────────── */
+.sidebar-transition {
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}

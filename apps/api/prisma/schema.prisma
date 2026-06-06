@@ -1,0 +1,260 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  firstName String
+  lastName  String
+  phone     String?
+  role      String   @default("USER") // ADMIN, USER, COURIER, CORPORATE
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  courierProfile Courier?
+  orders         Order[]   @relation("UserOrders")
+  addresses      Address[]
+}
+
+model Courier {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vehicleType String   @default("MOTO") // MOTO, CAR, VAN, TAXI, PANELVAN
+  plateNumber String?
+  isOnline    Boolean  @default(false)
+  currentLat  Float?
+  currentLng  Float?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  assignedOrders Order[] @relation("CourierOrders")
+}
+
+model PricingRule {
+  id           String   @id @default(uuid())
+  vehicleType  String   // MOTO, CAR, EXPRESS_CAR, VAN, TAXI, PANELVAN
+  deliveryType String   @default("STANDARD") // STANDARD, EXPRESS, VIP, SCHEDULED
+  basePrice    Float
+  perKmPrice   Float
+  perMinPrice  Float    @default(0)
+  minPrice     Float
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([vehicleType, deliveryType])
+  @@index([isActive, vehicleType, deliveryType])
+}
+
+model SurgePricing {
+  id         String   @id @default(uuid())
+  name       String
+  multiplier Float
+  startTime  String?  // HH:mm
+  endTime    String?  // HH:mm
+  daysOfWeek String?  // 0,1,2,3,4,5,6
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([isActive, startTime, endTime])
+}
+
+model WeatherPricing {
+  id         String   @id @default(uuid())
+  condition  String   // RAIN, SNOW, STORM, etc.
+  multiplier Float
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([isActive, condition])
+}
+
+model Zone {
+  id              String   @id @default(uuid())
+  name            String
+  polygonJson     String   // Store as JSON string for coordinates
+  priceAdjustment Float    @default(0) // Fixed addition or can be multiplier logic
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([isActive, name])
+}
+
+model Coupon {
+  id           String    @id @default(uuid())
+  code         String    @unique
+  discountType String    // PERCENT, FIXED
+  value        Float
+  maxDiscount  Float?
+  expiryDate   DateTime?
+  usageLimit   Int?
+  usageCount   Int       @default(0)
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  orders       Order[]
+
+  @@index([code, isActive])
+  @@index([expiryDate, isActive])
+}
+
+model Campaign {
+  id           String    @id @default(uuid())
+  name         String
+  discountType String    // PERCENT, FIXED
+  value        Float
+  startDate    DateTime
+  endDate      DateTime
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model Order {
+  id              String      @id @default(uuid())
+  userId          String
+  user            User        @relation("UserOrders", fields: [userId], references: [id])
+  courierId       String?
+  courier         Courier?    @relation("CourierOrders", fields: [courierId], references: [id])
+  status          String      @default("PENDING")
+  
+  pickupLat       Float
+  pickupLng       Float
+  pickupAddress   String
+  dropoffLat      Float
+  dropoffLng      Float
+  dropoffAddress  String
+  
+  packageDetails  String?
+  packageCategory String?     // DOCUMENT, FLOWER, FOOD, ELECTRONICS, MEDICAL, TEXTILE
+  vehicleType     String      @default("MOTO")
+  deliveryType    String      @default("STANDARD")
+  scheduledFor    DateTime?   // For SCHEDULED delivery type
+  deliveryOtp     String?     // 4-digit code generated upon order creation
+  signatureUrl    String?     // URL to uploaded signature image
+  
+  // Price Breakdown
+  basePrice       Float
+  distancePrice   Float
+  surgePrice      Float       @default(0)
+  weatherPrice    Float       @default(0)
+  taxPrice        Float
+  commissionPrice Float
+  discountPrice   Float       @default(0)
+  totalPrice      Float
+  
+  distanceKm      Float?
+  estimatedTime   Int?        // in minutes
+  
+  couponId        String?
+  coupon          Coupon?     @relation(fields: [couponId], references: [id])
+  quoteId         String?     @unique
+  quote           Quote?      @relation(fields: [quoteId], references: [id])
+  idempotencyKey  String      @unique
+  
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([status, createdAt(sort: Desc)])
+}
+
+model Quote {
+  id              String    @id
+  expiresAt       DateTime
+  consumedAt      DateTime?
+  vehicleType     String
+  deliveryType    String
+  pickupLat       Float
+  pickupLng       Float
+  dropoffLat      Float
+  dropoffLng      Float
+  couponCode      String?
+  weatherCondition String?
+  pricingVersion  String
+
+  basePrice       Float
+  distancePrice   Float
+  surgePrice      Float
+  weatherPrice    Float
+  nightPrice      Float
+  zonePrice       Float
+  taxPrice        Float
+  commissionPrice Float
+  discountPrice   Float
+  totalPrice      Float
+  distanceKm      Float
+  estimatedTime   Int
+  appliedAdjustments String
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  order           Order?
+
+  @@index([expiresAt, consumedAt])
+  @@index([createdAt(sort: Desc)])
+}
+
+model Address {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  address   String
+  lat       Float
+  lng       Float
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Settings {
+  id              String   @id @default(uuid())
+  key             String   @unique
+  value           String
+  description     String?
+  updatedAt       DateTime @updatedAt
+}
+
+model AuditLog {
+  id           String   @id @default(uuid())
+  entity       String
+  entityId     String?
+  action       String
+  adminId      String
+  beforeJson   String?
+  afterJson    String?
+  metadataJson String?
+  createdAt    DateTime @default(now())
+
+  @@index([entity, createdAt(sort: Desc)])
+  @@index([adminId, createdAt(sort: Desc)])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String?
+  type      String   // ORDER_NEW, ORDER_STATUS, COURIER_OFFLINE, COURIER_ONLINE, SYSTEM, ALERT
+  title     String
+  message   String
+  data      String?  // JSON string for extra data (orderId, courierId, etc.)
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId, isRead, createdAt(sort: Desc)])
+  @@index([type, createdAt(sort: Desc)])
+}
+

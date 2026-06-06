@@ -1,0 +1,28 @@
+{
+  "name": "jetis-platform",
+  "version": "1.0.0",
+  "private": true,
+  "description": "JETIS - Full-Stack Courier SaaS Platform",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "clean": "turbo run clean"
+  },
+  "devDependencies": {
+    "prettier": "^3.0.0",
+    "turbo": "^1.10.14"
+  },
+  "overrides": {
+    "react": "19.1.0",
+    "react-dom": "19.1.0"
+  },
+  "dependencies": {
+    "react": "19.1.0",
+    "react-dom": "19.1.0"
+  }
+}

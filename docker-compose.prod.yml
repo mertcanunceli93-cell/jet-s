@@ -1,0 +1,99 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: jetis_postgres_prod
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-jetis}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-jetis_password}
+      POSTGRES_DB: ${POSTGRES_DB:-jetis_db}
+    ports:
+      - "5432:5432"
+    volumes:
+      - jetis_pgdata_prod:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - jetis_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-jetis} -d ${POSTGRES_DB:-jetis_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  redis:
+    image: redis:7-alpine
+    container_name: jetis_redis_prod
+    ports:
+      - "6379:6379"
+    volumes:
+      - jetis_redisdata_prod:/data
+    restart: unless-stopped
+    networks:
+      - jetis_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: jetis_api_prod
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-jetis}:${POSTGRES_PASSWORD:-jetis_password}@postgres:5432/${POSTGRES_DB:-jetis_db}?schema=public
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=${JWT_SECRET:-super-secret-key-change-in-production}
+      - PORT=3000
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    networks:
+      - jetis_network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:3000}
+        VITE_SOCKET_URL: ${VITE_SOCKET_URL:-http://localhost:3000}
+    container_name: jetis_web_prod
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "80:80"
+    restart: unless-stopped
+    networks:
+      - jetis_network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:80 || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+networks:
+  jetis_network:
+    driver: bridge
+
+volumes:
+  jetis_pgdata_prod:
+  jetis_redisdata_prod:

@@ -1,0 +1,111 @@
+{
+  "name": "@jetis/admin",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "main": "electron.cjs",
+  "author": "Jetis Team",
+  "description": "JETIS Operasyon Merkezi - Kurye Yönetim Paneli",
+  "scripts": {
+    "dev": "vite --port 5174",
+    "build": "tsc -b && vite build",
+    "lint": "eslint .",
+    "preview": "vite preview",
+    "electron:dev": "concurrently \"vite --port 5174\" \"wait-on http://localhost:5174 && electron .\"",
+    "electron:build": "npm run build && electron-builder --win",
+    "electron:build:all": "npm run build && electron-builder --win --mac --linux"
+  },
+  "build": {
+    "appId": "com.jetis.admin",
+    "productName": "JETIS Operasyon Merkezi",
+    "copyright": "Copyright © 2026 Jetis",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "dist/**/*",
+      "electron.cjs",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "JETIS-Operasyon-Merkezi-${version}-Setup.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "JETIS Operasyon Merkezi",
+      "installerLanguages": [
+        "tr_TR",
+        "en_US"
+      ],
+      "language": "1055"
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "build/icon.png",
+      "category": "public.app-category.business"
+    },
+    "linux": {
+      "target": "AppImage",
+      "icon": "build/icon.png",
+      "category": "Office"
+    }
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.100.10",
+    "axios": "^1.16.0",
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.38.0",
+    "leaflet": "^1.9.4",
+    "lucide-react": "^1.14.0",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "react-leaflet": "^5.0.0",
+    "react-router-dom": "^7.15.0",
+    "recharts": "^3.8.1",
+    "socket.io-client": "^4.8.3",
+    "tailwind-merge": "^3.6.0",
+    "zustand": "^5.0.13"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@tailwindcss/postcss": "^4.3.0",
+    "@tailwindcss/vite": "^4.3.0",
+    "@types/leaflet": "^1.9.21",
+    "@types/node": "^24.12.3",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "autoprefixer": "^10.5.0",
+    "concurrently": "^9.2.1",
+    "electron": "35.1.2",
+    "electron-builder": "^26.8.1",
+    "eslint": "^10.3.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.2",
+    "globals": "^17.6.0",
+    "postcss": "^8.5.14",
+    "tailwindcss": "^4.3.0",
+    "typescript": "~6.0.2",
+    "typescript-eslint": "^8.59.2",
+    "vite": "^8.0.12",
+    "wait-on": "^8.0.5"
+  }
+}

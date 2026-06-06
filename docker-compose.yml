@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: jetis_postgres
+    environment:
+      POSTGRES_USER: jetis
+      POSTGRES_PASSWORD: jetis_password
+      POSTGRES_DB: jetis_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - jetis_pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U jetis -d jetis_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  redis:
+    image: redis:7-alpine
+    container_name: jetis_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - jetis_redisdata:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  jetis_pgdata:
+  jetis_redisdata:
