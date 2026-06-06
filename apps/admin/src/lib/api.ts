@@ -3,7 +3,7 @@ import type { AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 import { useAuth } from '../store/useAuth';
 
 const api = axios.create({
-  baseURL: 'http://localhost:4000/api',
+  baseURL: 'https://jetiss.onrender.com/api',
   headers: {
     'Content-Type': 'application/json',
   },
