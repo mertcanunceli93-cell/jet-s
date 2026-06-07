@@ -62,8 +62,22 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/audit-logs', auditLogRoutes);
 
 
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
+app.get('/health', async (req, res) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    res.status(200).json({ 
+      status: 'OK', 
+      database: 'CONNECTED',
+      timestamp: new Date().toISOString() 
+    });
+  } catch (error: any) {
+    res.status(500).json({ 
+      status: 'ERROR', 
+      database: 'DISCONNECTED',
+      error: error.message,
+      timestamp: new Date().toISOString() 
+    });
+  }
 });
 
 app.use(notFoundHandler);
